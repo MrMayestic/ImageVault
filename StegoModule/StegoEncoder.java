@@ -1,12 +1,15 @@
+package StegoModule;
 
 import java.awt.*;
 import java.awt.image.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import javax.imageio.*;
+import java.util.Scanner; 
+import java.nio.file.*;
 
 //class do do steganography on given image
-class StegoEncoder {
+public class StegoEncoder {
 
     //static function to calculate current bit
     private static int calcBit(byte[] byteText, int bitIndex) {
@@ -15,22 +18,28 @@ class StegoEncoder {
         return (byteText[byteIndex] >> bitPos) & 1;
     }
 
-    public static void main(String[] args) {
-        String textToEncode = "Oda do Labu z C++ Goncerz wchodzi i mówi, że zadanie jest proste, student patrzy w konsolę i nie chce mu się spać, w głowie wskaźniki krążą jak coś bardzo ostre, i na cały korytarz chciałby głośno klać. Rule of Five prześladuje go w środku tej nocy, destruktory i kopie konstruktora się śmieją, a student traci powoli ostatnie swoje mocy, bo zadania 'trywialne' przez ekran mu świeją. Goncerz wzrusza ramiony i mówi: mało czasu? student chciałby odpowiedzieć, lecz milczy grzecznie, zadanie banalnie — to filozofia hałasu, i znowu noc zarwana, choć chciałby spać bezpiecznie. I tak co dwa tygodnie ten sam powtarza się temat, C++ nie lituje — jest twardy jak głaz, Goncerz się uśmiecha, to przecież jego klimat, a student czeka na cud… może nadejdzie czas.";
+    public static void encode(String srcImgPath, String srcTextPath, String resultPath) {
         BufferedImage img;
 
         try {
-            File mainImg = new File("tomek.jpg");
+            File mainImg = new File(srcImgPath);
             img = ImageIO.read(mainImg);
         } catch (IOException e) {
-            System.err.println("Nie udało się wczytać obrazu: " + e.getMessage());
+            System.err.println("Failed to read image: " + e.getMessage());
+            return;
+        }
+
+        String textToEncode;
+
+        try {
+            textToEncode = Files.readString(Path.of(srcTextPath));
+        } catch (IOException e) {
+            System.err.println("Failed to read text: " + e.getMessage());
             return;
         }
 
         byte[] byteText = textToEncode.getBytes(StandardCharsets.UTF_8);
         int length = byteText.length;
-
-        System.out.println(length);
 
         byte[] header = new byte[4];
         header[0] = (byte) (length >> 24);
@@ -70,12 +79,11 @@ class StegoEncoder {
         }
 
         try {
-            ImageIO.write(img, "png", new File("encoded.png"));
+            ImageIO.write(img, "png", new File(resultPath + ".png"));
             System.out.println("Zapisano wynik.png");
         } catch (IOException e) {
             System.err.println("Nie udało się zapisać: " + e.getMessage());
         }
-
-        System.out.println("Szerokość: " + img.getWidth());
     }
+
 }

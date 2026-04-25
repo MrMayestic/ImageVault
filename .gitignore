@@ -1,4 +1,4 @@
 *.class
-*.jpg
-*.png
-*.jpeg
+# *.jpg
+# *.png
+# *.jpeg

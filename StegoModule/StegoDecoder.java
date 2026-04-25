@@ -1,3 +1,4 @@
+package StegoModule;
 
 import java.awt.*;
 import java.awt.image.*;
@@ -5,16 +6,17 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import javax.imageio.*;
 
-class StegoDecoder {
+public class StegoDecoder {
 
     private static int addBit(int currentByte, int bit) {
         return (currentByte << 1) | (bit & 1);
     }
 
-    public static void main(String[] args) {
+    public static void decode(String srcImagePath, String resultPath) {
         BufferedImage img;
+
         try {
-            File mainImg = new File("encoded.png");
+            File mainImg = new File(srcImagePath);
             img = ImageIO.read(mainImg);
         } catch (IOException e) {
             System.err.println("Nie udało się wczytać obrazu: " + e.getMessage());
@@ -48,8 +50,6 @@ class StegoDecoder {
             bitIndex++;
 
         }
-
-        System.out.println(length);
 
         byte[] message = new byte[length];
 
