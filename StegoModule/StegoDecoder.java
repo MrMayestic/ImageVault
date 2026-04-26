@@ -3,7 +3,7 @@ package StegoModule;
 import java.awt.*;
 import java.awt.image.*;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import javax.imageio.*;
 
 public class StegoDecoder {
@@ -12,7 +12,7 @@ public class StegoDecoder {
         return (currentByte << 1) | (bit & 1);
     }
 
-    public static void decode(String srcImagePath, String resultPath) {
+    public static String decode(String srcImagePath, String resultPath) {
         BufferedImage img;
 
         try {
@@ -20,7 +20,7 @@ public class StegoDecoder {
             img = ImageIO.read(mainImg);
         } catch (IOException e) {
             System.err.println("Nie udało się wczytać obrazu: " + e.getMessage());
-            return;
+            return "";
         }
 
         int bitIndex = 0;
@@ -88,7 +88,8 @@ public class StegoDecoder {
             }
         }
 
-        String tekst = new String(message, StandardCharsets.UTF_8);
-        System.out.println(tekst);
+        // String tekst = new String(message, StandardCharsets.UTF_8);
+        // System.out.println(Base64.getEncoder().encodeToString(message));
+        return Base64.getEncoder().encodeToString(message);
     }
 }

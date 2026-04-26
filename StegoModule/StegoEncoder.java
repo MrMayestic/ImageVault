@@ -3,10 +3,8 @@ package StegoModule;
 import java.awt.*;
 import java.awt.image.*;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import javax.imageio.*;
-import java.util.Scanner; 
-import java.nio.file.*;
 
 //class do do steganography on given image
 public class StegoEncoder {
@@ -18,7 +16,7 @@ public class StegoEncoder {
         return (byteText[byteIndex] >> bitPos) & 1;
     }
 
-    public static void encode(String srcImgPath, String srcTextPath, String resultPath) {
+    public static void encode(String srcImgPath, String textToEncode, String resultPath) {
         BufferedImage img;
 
         try {
@@ -29,16 +27,7 @@ public class StegoEncoder {
             return;
         }
 
-        String textToEncode;
-
-        try {
-            textToEncode = Files.readString(Path.of(srcTextPath));
-        } catch (IOException e) {
-            System.err.println("Failed to read text: " + e.getMessage());
-            return;
-        }
-
-        byte[] byteText = textToEncode.getBytes(StandardCharsets.UTF_8);
+        byte[] byteText = Base64.getDecoder().decode(textToEncode);
         int length = byteText.length;
 
         byte[] header = new byte[4];
@@ -80,9 +69,9 @@ public class StegoEncoder {
 
         try {
             ImageIO.write(img, "png", new File(resultPath + ".png"));
-            System.out.println("Zapisano wynik.png");
+            System.out.println("Saved encoded image.");
         } catch (IOException e) {
-            System.err.println("Nie udało się zapisać: " + e.getMessage());
+            System.err.println("Failed to encode image: " + e.getMessage());
         }
     }
 
