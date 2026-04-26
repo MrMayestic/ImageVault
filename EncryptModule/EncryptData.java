@@ -1,63 +1,65 @@
+package EncryptModule;
+
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.util.Base64;
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.security.SecureRandom;
-import java.util.Base64;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.InvalidKeyException;
-import java.security.InvalidAlgorithmParameterException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.BadPaddingException;
+public class EncryptData {
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import javax.imageio.*;
-
-public class EncryptData{
-    private static final int AES_KEY_SIZE = 256; 
+    private static final int AES_KEY_SIZE = 256;
     private static final int GCM_IV_LENGTH = 12;
     private static final int GCM_TAG_LENGTH = 128;
 
-    public static String encrypt(String data, SecretKey key){
-        
+    public static SecretKey generateKey(String secret) throws Exception {
+        byte[] keyBytes = MessageDigest
+                .getInstance("SHA-256")
+                .digest(secret.getBytes("UTF-8"));
+
+        return new SecretKeySpec(keyBytes, "AES");
+    }
+
+    public static String encrypt(String data, SecretKey key) {
+
         byte[] initVector = new byte[GCM_IV_LENGTH];
         new SecureRandom().nextBytes(initVector);
-        
+
         GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH, initVector);
         Cipher cipher;
-        try{
+        try {
             cipher = Cipher.getInstance("AES/GCM/NoPadding");
             cipher.init(Cipher.ENCRYPT_MODE, key, spec);
-        }
-        catch(NoSuchAlgorithmException e){
+        } catch (NoSuchAlgorithmException e) {
+            System.err.println("Nie udalo sie zakodowac wiadomosci: " + e.getMessage());
+            return new String("");
+        } catch (NoSuchPaddingException e) {
+            System.err.println("Nie udalo sie zakodowac wiadomosci: " + e.getMessage());
+            return new String("");
+        } catch (InvalidKeyException e) {
+            System.err.println("Nie udalo sie zakodowac wiadomosci: " + e.getMessage());
+            return new String("");
+        } catch (InvalidAlgorithmParameterException e) {
             System.err.println("Nie udalo sie zakodowac wiadomosci: " + e.getMessage());
             return new String("");
         }
-        catch(NoSuchPaddingException e){
-            System.err.println("Nie udalo sie zakodowac wiadomosci: " + e.getMessage());
-            return new String("");
-        }
-        catch(InvalidKeyException e){
-            System.err.println("Nie udalo sie zakodowac wiadomosci: " + e.getMessage());
-            return new String("");
-        }
-        catch(InvalidAlgorithmParameterException e){
-            System.err.println("Nie udalo sie zakodowac wiadomosci: " + e.getMessage());
-            return new String("");
-        }   
         byte[] cipherText;
-        try{
+        try {
             cipherText = cipher.doFinal(data.getBytes());
-        }
-        catch(IllegalBlockSizeException e){
+        } catch (IllegalBlockSizeException e) {
             System.err.println("Nie udalo sie zakodowac wiadomosci: " + e.getMessage());
             return new String("");
-        }
-        catch(BadPaddingException e){
+        } catch (BadPaddingException e) {
             System.err.println("Nie udalo sie zakodowac wiadomosci: " + e.getMessage());
             return new String("");
         }
@@ -68,8 +70,8 @@ public class EncryptData{
 
         return Base64.getEncoder().encodeToString(dataPrepared);
     }
-    
-    public static String decrypt(String data, SecretKey key){
+
+    public static String decrypt(String data, SecretKey key) {
         byte[] dataDecoded = Base64.getDecoder().decode(data);
 
         byte[] initVector = new byte[GCM_IV_LENGTH];
@@ -80,44 +82,38 @@ public class EncryptData{
         System.arraycopy(dataDecoded, GCM_IV_LENGTH, cipherText, 0, cipherTextLength);
 
         Cipher cipher;
-        try{
+        try {
             cipher = Cipher.getInstance("AES/GCM/NoPadding");
-        }
-        catch(NoSuchAlgorithmException e){
+        } catch (NoSuchAlgorithmException e) {
             System.err.println("Nie udalo sie zakodowac wiadomosci: " + e.getMessage());
             return new String("");
-        }
-        catch(NoSuchPaddingException e){
+        } catch (NoSuchPaddingException e) {
             System.err.println("Nie udalo sie zakodowac wiadomosci: " + e.getMessage());
             return new String("");
         }
         GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH, initVector);
-        try{
+        try {
             cipher.init(Cipher.DECRYPT_MODE, key, spec);
-        }
-        catch(InvalidKeyException e){
+        } catch (InvalidKeyException e) {
             System.err.println("Nie udalo sie zakodowac wiadomosci: " + e.getMessage());
             return new String("");
-        }
-        catch(InvalidAlgorithmParameterException e){
+        } catch (InvalidAlgorithmParameterException e) {
             System.err.println("Nie udalo sie zakodowac wiadomosci: " + e.getMessage());
             return new String("");
         }
 
         byte[] plainText;
 
-        try{
+        try {
             plainText = cipher.doFinal(cipherText);
-        }
-        catch(IllegalBlockSizeException e){
+        } catch (IllegalBlockSizeException e) {
+            System.err.println("Nie udalo sie zakodowac wiadomosci: " + e.getMessage());
+            return new String("");
+        } catch (BadPaddingException e) {
             System.err.println("Nie udalo sie zakodowac wiadomosci: " + e.getMessage());
             return new String("");
         }
-        catch(BadPaddingException e){
-            System.err.println("Nie udalo sie zakodowac wiadomosci: " + e.getMessage());
-            return new String("");
-        }
-        
+
         return new String(plainText);
     }
 
