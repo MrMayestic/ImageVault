@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox maxHeight="Infinity" maxWidth="Infinity" prefHeight="557.0" prefWidth="779.0" spacing="15" style="-fx-padding: 20;" VBox.vgrow="ALWAYS" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.imagevault.controller.TaskController">
+
+    <Label style="-fx-font-size: 32px;" text="ImageVault" />
+
+    <HBox spacing="10">
+        <Button onAction="#handleLoadImage" styleClass="rounded" text="Pick Image" />
+        <Label fx:id="imagePath" alignment="CENTER" prefHeight="26.0" prefWidth="103.0" text="File not selected." textAlignment="CENTER" />
+    </HBox>
+   <HBox prefHeight="100.0" prefWidth="739.0">
+      <children>
+         <HBox alignment="BOTTOM_LEFT" prefHeight="17.0" prefWidth="303.0">
+            <children>
+               <RadioButton id="SelectFileBtn" mnemonicParsing="false" selected="true" text="Select File" />
+               <RadioButton id="InputTextBtn" mnemonicParsing="false" text="Input text">
+                  <padding>
+                     <Insets left="20.0" />
+                  </padding></RadioButton>
+            </children>
+         </HBox>
+      </children></HBox>
+
+    <HBox spacing="10">
+        <Button onAction="#handleLoadText" styleClass="rounded" text="Pick Text File." />
+        <Label fx:id="textPath" alignment="CENTER" prefHeight="27.0" prefWidth="99.0" text="File not selected." />
+    </HBox>
+   <TextArea disable="true" prefHeight="200.0" prefWidth="200.0" promptText="Enter text to encode" />
+
+    <TextField fx:id="passwordField" promptText="Password" />
+
+    <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="10">
+        <Button onAction="#handleEncode" styleClass="rounded" text="Encode" />
+        <Button onAction="#handleDecode" styleClass="rounded" text="Decode" />
+    </HBox>
+   <ImageView fitHeight="200.0" fitWidth="263.0" pickOnBounds="true" preserveRatio="true" />
+
+</VBox>
