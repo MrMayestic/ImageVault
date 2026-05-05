@@ -16,15 +16,14 @@ public class StegoEncoder {
         return (byteText[byteIndex] >> bitPos) & 1;
     }
 
-    public static void encode(String srcImgPath, String textToEncode, String resultPath) {
+    public static File encode(File mainImg, String textToEncode, String resultPath) {
         BufferedImage img;
 
         try {
-            File mainImg = new File(srcImgPath);
             img = ImageIO.read(mainImg);
         } catch (IOException e) {
             System.err.println("Failed to read image: " + e.getMessage());
-            return;
+            return null;
         }
 
         byte[] byteText = Base64.getDecoder().decode(textToEncode);
@@ -67,12 +66,16 @@ public class StegoEncoder {
             }
         }
 
+        File encodedImage = new File(resultPath + ".png");
+
         try {
-            ImageIO.write(img, "png", new File(resultPath + ".png"));
+            ImageIO.write(img, "png", encodedImage);
             System.out.println("Saved encoded image.");
         } catch (IOException e) {
             System.err.println("Failed to encode image: " + e.getMessage());
         }
+
+        return encodedImage;
     }
 
 }

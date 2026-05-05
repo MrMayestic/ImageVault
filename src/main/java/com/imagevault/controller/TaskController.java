@@ -1,43 +1,153 @@
 package com.imagevault.controller;
+import com.imagevault.model.*;
 
-import com.imagevault.model.EncryptData;
-import com.imagevault.model.StegoEncoder;
-import com.imagevault.model.StegoDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import javafx.fxml.*;
+import javafx.scene.control.*;
+import javafx.scene.image.*;
+import javafx.scene.layout.*;
+import javafx.stage.*;
+import java.io.*;
+import java.nio.file.*;
+import javafx.stage.FileChooser.*;
+import java.util.*;
 
 public class TaskController {
 
-    public static void main(String[] args) {
-        String testImgSrc = "src/main/resources/test.jpg";
-        String testTextSrc = "src/main/resources/textToEncode.txt";
-        String testResultPath = "src/main/resources/tresult";
-        String testImageToDecodePath = "src/main/resources/tresult.png";
-        String testDecodedTextPath = "src/main/resources/tdecoded.txt";
-        String testPassword = "parserZcepa";
+    private static File selectedImage;
+    private static File selectedText;
+    private static boolean isFile = true;
+
+    @FXML private TextField passwordField;
+    @FXML private Label imagePath;
+    @FXML private Label textPath;
+
+    @FXML private HBox fileBox;
+    @FXML private TextArea inputArea;
+    @FXML private ToggleGroup textInputType;
+
+    @FXML private Label resultImageInfo;
+    @FXML private ImageView resultPreview;
+    @FXML private Button downloadImage;
+
+    //handle to toggling text input method
+    @FXML
+    private void handleToggleInput() {
+        RadioButton selected = (RadioButton) textInputType.getSelectedToggle();
+        if (selected == null) return;
+        isFile = selected.getText().equals("Select File");
+
+        fileBox.setVisible(isFile);
+        fileBox.setManaged(isFile);
+
+        inputArea.setVisible(!isFile);
+        inputArea.setManaged(!isFile);
+    }
+
+    //creates file chooser and sets source image
+    @FXML
+    private void handleLoadImage() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Pick image to encode");
+        fileChooser.getExtensionFilters().addAll(
+                new ExtensionFilter("Image Files", "*.png", "*.jpg", "*.bmp"));
+        File selectedFile = fileChooser.showOpenDialog(new Stage());
+        if (selectedFile != null) {
+            selectedImage = selectedFile;
+            imagePath.setText(selectedImage.getName());
+        }
+    }
+
+    //creates file chooser and sets text file
+    @FXML
+    private void handleLoadText() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Pick text to encode");
+        fileChooser.getExtensionFilters().addAll(
+                new ExtensionFilter("Text Files", "*.txt"));
+        File selectedFile = fileChooser.showOpenDialog(new Stage());
+        if (selectedFile != null) {
+            selectedText = selectedFile;
+            textPath.setText(selectedText.getName());
+        }
+    }
+
+    //handler when encode button is clicked
+    @FXML
+    private void encodeImage() {
+        String password = passwordField.getText();
+        String textToEncode;
         String encryptedData;
 
-        String textToEncode;
+        //isFile tells which type of text input is selected
+        if (isFile) {
+            try {
+                textToEncode = Files.readString(Path.of(selectedText.getAbsolutePath()));
+            } catch (Exception e) {
+                e.printStackTrace();
+                return;
+            }
+        } else {
+            textToEncode = inputArea.getText();
+        }
 
+        //encrypt data
         try {
-            textToEncode = Files.readString(Path.of(testTextSrc));
+            encryptedData = EncryptData.encrypt(textToEncode, EncryptData.generateKey(password));
         } catch (Exception e) {
             e.printStackTrace();
             return;
         }
 
-        try {
-            encryptedData = EncryptData.encrypt(textToEncode, EncryptData.generateKey(testPassword));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return;
-        }
+        //encode() returns reference to new file
+        File encodedImage = StegoEncoder.encode(selectedImage, encryptedData, "result");
 
-        StegoEncoder.encode(testImgSrc, encryptedData, testResultPath);
-        String decodedText = StegoDecoder.decode(testImageToDecodePath, testDecodedTextPath);
+        resultImageInfo.setVisible(true);
+        resultImageInfo.setManaged(true);
+
+        Image image = new Image(encodedImage.toURI().toString());
+        resultPreview.setImage(image);
+
+        resultPreview.setVisible(true);
+        resultPreview.setManaged(true);
+
+        downloadImage.setVisible(true);
+        downloadImage.setManaged(true);
+    }
+
+    //temporary decoding test
+    public static void main(String[] args) {
+//        String testImgSrc = "test.jpg";
+//        String testTextSrc = "textToEncode.txt";
+//        String EnceyptedTextSrc = "encrypted.txt";
+//        String testResultPath = "result";
+//        String testImageToDecodePath = "result.png";
+//        String testDecodedTextPath = "decoded.txt";
+//        String testPassword = "parserZcepa";
+//        String encryptedData;
+//
+//        String textToEncode;
+//
+//        try {
+//            textToEncode = Files.readString(Path.of(testTextSrc));
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return;
+//        }
+//
+//        try {
+//            encryptedData = EncryptData.encrypt(textToEncode, EncryptData.generateKey(testPassword));
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return;
+//        }
+
+//        StegoEncoder.encode(testImgSrc, encryptedData, testResultPath);
+        String decodedText = StegoDecoder.decode("result.png", "");
 
         try {
-            System.out.println(EncryptData.decrypt(decodedText, EncryptData.generateKey(testPassword)));
+            System.out.println(EncryptData.decrypt(decodedText, EncryptData.generateKey("iLoveIO!")));
         } catch (Exception e) {
             e.printStackTrace();
             return;
