@@ -1,93 +1,157 @@
 package com.imagevault.controller;
+import com.imagevault.model.*;
 
-import com.imagevault.model.EncryptData;
-import com.imagevault.model.StegoDecoder;
-import com.imagevault.model.StegoEncoder;
-import javafx.fxml.FXML;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
-import javafx.stage.FileChooser;
-import javafx.stage.Stage;
-
-import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import javafx.fxml.*;
+import javafx.scene.control.*;
+import javafx.scene.image.*;
+import javafx.scene.layout.*;
+import javafx.stage.*;
+import java.io.*;
+import java.nio.file.*;
+import javafx.stage.FileChooser.*;
+import java.util.*;
 
 public class TaskController {
 
+    private static File selectedImage;
+    private static File selectedText;
+    private static boolean isFile = true;
+
+    @FXML private TextField passwordField;
     @FXML private Label imagePath;
     @FXML private Label textPath;
-    @FXML private TextField passwordField;
-    @FXML private TextArea outputArea;
 
-    private File selectedImage;
-    private File selectedText;
+    @FXML private HBox fileBox;
+    @FXML private TextArea inputArea;
+    @FXML private ToggleGroup textInputType;
 
+    @FXML private Label resultImageInfo;
+    @FXML private ImageView resultPreview;
+    @FXML private Button downloadImage;
+
+    //handle to toggling text input method
+    @FXML
+    private void handleToggleInput() {
+        RadioButton selected = (RadioButton) textInputType.getSelectedToggle();
+        if (selected == null) return;
+        isFile = selected.getText().equals("Select File");
+
+        fileBox.setVisible(isFile);
+        fileBox.setManaged(isFile);
+
+        inputArea.setVisible(!isFile);
+        inputArea.setManaged(!isFile);
+    }
+
+    //creates file chooser and sets source image
     @FXML
     private void handleLoadImage() {
-        FileChooser fc = new FileChooser();
-        fc.setTitle("Wybierz obraz");
-        fc.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Obrazy", "*.jpg", "*.png")
-        );
-        selectedImage = fc.showOpenDialog(new Stage());
-        if (selectedImage != null) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Pick image to encode");
+        fileChooser.getExtensionFilters().addAll(
+                new ExtensionFilter("Image Files", "*.png", "*.jpg", "*.bmp"));
+        File selectedFile = fileChooser.showOpenDialog(new Stage());
+        if (selectedFile != null) {
+            selectedImage = selectedFile;
             imagePath.setText(selectedImage.getName());
         }
     }
 
+    //creates file chooser and sets text file
     @FXML
     private void handleLoadText() {
-        FileChooser fc = new FileChooser();
-        fc.setTitle("Wybierz plik tekstowy");
-        fc.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Tekst", "*.txt")
-        );
-        selectedText = fc.showOpenDialog(new Stage());
-        if (selectedText != null) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Pick text to encode");
+        fileChooser.getExtensionFilters().addAll(
+                new ExtensionFilter("Text Files", "*.txt"));
+        File selectedFile = fileChooser.showOpenDialog(new Stage());
+        if (selectedFile != null) {
+            selectedText = selectedFile;
             textPath.setText(selectedText.getName());
         }
     }
 
+    //handler when encode button is clicked
     @FXML
-    private void handleEncode() {
-        if (selectedImage == null || selectedText == null) {
-            outputArea.setText("Błąd: wybierz obraz i plik tekstowy.");
-            return;
+    private void encodeImage() {
+        String password = passwordField.getText();
+        String textToEncode;
+        String encryptedData;
+
+        //isFile tells which type of text input is selected
+        if (isFile) {
+            try {
+                textToEncode = Files.readString(Path.of(selectedText.getAbsolutePath()));
+            } catch (Exception e) {
+                e.printStackTrace();
+                return;
+            }
+        } else {
+            textToEncode = inputArea.getText();
         }
-        if (passwordField.getText().isEmpty()) {
-            outputArea.setText("Błąd: podaj hasło.");
-            return;
-        }
+
+        //encrypt data
         try {
-            String text = Files.readString(Path.of(selectedText.getAbsolutePath()));
-            String encrypted = EncryptData.encrypt(text, EncryptData.generateKey(passwordField.getText()));
-            String outputPath = selectedImage.getParent() + "/result";
-            StegoEncoder.encode(selectedImage.getAbsolutePath(), encrypted, outputPath);
-            outputArea.setText("Zakodowano pomyślnie!\nWynik: " + outputPath + ".png");
+            encryptedData = EncryptData.encrypt(textToEncode, EncryptData.generateKey(password));
         } catch (Exception e) {
-            outputArea.setText("Błąd: " + e.getMessage());
+            e.printStackTrace();
+            return;
         }
+
+        //encode() returns reference to new file
+        File encodedImage = StegoEncoder.encode(selectedImage, encryptedData, "result");
+
+        resultImageInfo.setVisible(true);
+        resultImageInfo.setManaged(true);
+
+        Image image = new Image(encodedImage.toURI().toString());
+        resultPreview.setImage(image);
+
+        resultPreview.setVisible(true);
+        resultPreview.setManaged(true);
+
+        downloadImage.setVisible(true);
+        downloadImage.setManaged(true);
     }
 
-    @FXML
-    private void handleDecode() {
-        if (selectedImage == null) {
-            outputArea.setText("Błąd: wybierz obraz do odkodowania.");
-            return;
-        }
-        if (passwordField.getText().isEmpty()) {
-            outputArea.setText("Błąd: podaj hasło.");
-            return;
-        }
+    //temporary decoding test
+    public static void main(String[] args) {
+//        String testImgSrc = "test.jpg";
+//        String testTextSrc = "textToEncode.txt";
+//        String EnceyptedTextSrc = "encrypted.txt";
+//        String testResultPath = "result";
+//        String testImageToDecodePath = "result.png";
+//        String testDecodedTextPath = "decoded.txt";
+//        String testPassword = "parserZcepa";
+//        String encryptedData;
+//
+//        String textToEncode;
+//
+//        try {
+//            textToEncode = Files.readString(Path.of(testTextSrc));
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return;
+//        }
+//
+//        try {
+//            encryptedData = EncryptData.encrypt(textToEncode, EncryptData.generateKey(testPassword));
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return;
+//        }
+
+//        StegoEncoder.encode(testImgSrc, encryptedData, testResultPath);
+        String decodedText = StegoDecoder.decode("result.png", "");
+
         try {
-            String decodedPath = selectedImage.getParent() + "/decoded.txt";
-            String decoded = StegoDecoder.decode(selectedImage.getAbsolutePath(), decodedPath);
-            String decrypted = EncryptData.decrypt(decoded, EncryptData.generateKey(passwordField.getText()));
-            outputArea.setText("Odkodowano:\n" + decrypted);
+            System.out.println(EncryptData.decrypt(decodedText, EncryptData.generateKey("iLoveIO!")));
         } catch (Exception e) {
-            outputArea.setText("Błąd: " + e.getMessage());
+            e.printStackTrace();
+            return;
         }
+
     }
 }
