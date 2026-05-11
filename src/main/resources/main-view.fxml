@@ -61,15 +61,21 @@
 
                     <Label style="-fx-font-size: 24px;" text="ImageVault - Decode Image" />
 
-                    <HBox spacing="10">
-                        <Button styleClass="rounded" text="Pick Image" />
-                        <Label fx:id="decodeImagePath" prefHeight="24.0" prefWidth="92.0" text="File not selected." />
+                     <HBox spacing="10">
+                        <Button onAction="#handleLoadImageToDecode" styleClass="rounded" text="Pick Image" />
+                        <Label fx:id="decodeImagePath" prefHeight="24.0" text="File not selected." />
                     </HBox>
 
                     <PasswordField fx:id="decodedPasswordField" maxWidth="Infinity" promptText="Password" />
 
-                    <Button styleClass="rounded" text="Decode" />
+                    <Button onAction="#handleDecode" text="Decode">
+                        <styleClass>
+                            <String fx:value="rounded" />
+                            <String fx:value="accent" />
+                        </styleClass>
+                    </Button>
 
+                    <Label text="Zakodowana wiadomość:" />
                     <TextArea fx:id="outputArea" editable="false" minHeight="-Infinity" minWidth="-Infinity" prefHeight="163.0" prefWidth="319.0" promptText="Wynik pojawi się tutaj..." VBox.vgrow="ALWAYS" />
 
                 </VBox>
