@@ -31,6 +31,12 @@ public class TaskController {
     @FXML private ImageView resultPreview;
     @FXML private Button downloadImage;
 
+    private File imageToDecode;
+
+    @FXML private Label decodeImagePath;
+    @FXML private PasswordField decodedPasswordField;
+    @FXML private TextArea outputArea;
+
     //handle to toggling text input method
     @FXML
     private void handleToggleInput() {
@@ -114,6 +120,58 @@ public class TaskController {
 
         downloadImage.setVisible(true);
         downloadImage.setManaged(true);
+    }
+
+    //
+    @FXML
+    private void handleLoadImageToDecode() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Pick image to decode");
+        fileChooser.getExtensionFilters().addAll(
+                new ExtensionFilter("Image Files", "*.png"));
+
+        File selectedFile = fileChooser.showOpenDialog(new Stage());
+        
+        if (selectedFile != null) {
+            selectedImageToDecode = selectedFile;
+            decodeImagePath.setText(selectedImageToDecode.getName());
+        }
+    }
+    
+    //decode handler
+    @FXML
+    private void decodeImage() {
+        if (imageToDecode == null) {
+            outputArea.setText("Error: No image selected!");
+            return;
+        }
+
+        String base64Data;
+        String password = decodedPasswordField.getText();
+        String decryptedText;
+
+        try {
+            base64Data = StegoDecoder.decode(imageToDecode.getAbsolutePath(), "");
+            
+            if (base64Data == null || base64Data.isEmpty()) {
+                outputArea.setText("Error: No hidden data found in this image.");
+                return;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            outputArea.setText("Error: Failed to extract data from image.");
+            return;
+        }
+
+        try {
+            decryptedText = EncryptData.decrypt(base64Data, EncryptData.generateKey(password));
+        } catch (Exception e) {
+            e.printStackTrace();
+            outputArea.setText("Error: Decryption failed. Wrong password?");
+            return;
+        }
+
+        outputArea.setText(decryptedText);
     }
 
     //temporary decoding test
