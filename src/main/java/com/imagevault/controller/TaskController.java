@@ -16,6 +16,7 @@ import java.util.*;
 public class TaskController {
 
     private static File selectedImage;
+    private static File selectedImageToDecode;
     private static File selectedText;
     private static boolean isFile = true;
 
@@ -31,7 +32,7 @@ public class TaskController {
     @FXML private ImageView resultPreview;
     @FXML private Button downloadImage;
 
-    private File imageToDecode;
+//    private File imageToDecode;
 
     @FXML private Label decodeImagePath;
     @FXML private PasswordField decodedPasswordField;
@@ -125,6 +126,7 @@ public class TaskController {
     //
     @FXML
     private void handleLoadImageToDecode() {
+        System.out.printf("handleLoadImageToDecode");
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Pick image to decode");
         fileChooser.getExtensionFilters().addAll(
@@ -141,7 +143,7 @@ public class TaskController {
     //decode handler
     @FXML
     private void decodeImage() {
-        if (imageToDecode == null) {
+        if (selectedImageToDecode == null) {
             outputArea.setText("Error: No image selected!");
             return;
         }
@@ -151,7 +153,7 @@ public class TaskController {
         String decryptedText;
 
         try {
-            base64Data = StegoDecoder.decode(imageToDecode.getAbsolutePath(), "");
+            base64Data = StegoDecoder.decode(selectedImageToDecode.getAbsolutePath(), "");
             
             if (base64Data == null || base64Data.isEmpty()) {
                 outputArea.setText("Error: No hidden data found in this image.");
