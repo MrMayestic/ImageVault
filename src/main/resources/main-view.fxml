@@ -68,14 +68,14 @@
 
                     <PasswordField fx:id="decodedPasswordField" maxWidth="Infinity" promptText="Password" />
 
-                    <Button onAction="#handleDecode" text="Decode">
+                    <Button onAction="#decodeImage" text="Decode">
                         <styleClass>
                             <String fx:value="rounded" />
                             <String fx:value="accent" />
                         </styleClass>
                     </Button>
 
-                    <Label text="Zakodowana wiadomość:" />
+                    <Label text="Decoded message:" />
                     <TextArea fx:id="outputArea" editable="false" minHeight="-Infinity" minWidth="-Infinity" prefHeight="163.0" prefWidth="319.0" promptText="Wynik pojawi się tutaj..." VBox.vgrow="ALWAYS" />
 
                 </VBox>
