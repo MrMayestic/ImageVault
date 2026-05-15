@@ -56,6 +56,10 @@ public class TaskController {
     @FXML
     private void handleLoadImage() {
         FileChooser fileChooser = new FileChooser();
+        File resourcesDir = new File(System.getProperty("user.dir") + "/src/main/resources");
+        if (resourcesDir.exists()) {
+            fileChooser.setInitialDirectory(resourcesDir);
+        }
         fileChooser.setTitle("Pick image to encode");
         fileChooser.getExtensionFilters().addAll(
                 new ExtensionFilter("Image Files", "*.png", "*.jpg", "*.bmp"));
@@ -70,6 +74,10 @@ public class TaskController {
     @FXML
     private void handleLoadText() {
         FileChooser fileChooser = new FileChooser();
+        File resourcesDir = new File(System.getProperty("user.dir") + "/src/main/resources");
+        if (resourcesDir.exists()) {
+            fileChooser.setInitialDirectory(resourcesDir);
+        }
         fileChooser.setTitle("Pick text to encode");
         fileChooser.getExtensionFilters().addAll(
                 new ExtensionFilter("Text Files", "*.txt"));
@@ -108,7 +116,7 @@ public class TaskController {
         }
 
         //encode() returns reference to new file
-        File encodedImage = StegoEncoder.encode(selectedImage, encryptedData, "result");
+        File encodedImage = StegoEncoder.encode(selectedImage, encryptedData, System.getProperty("user.dir") + "/src/main/resources/result");
 
         resultImageInfo.setVisible(true);
         resultImageInfo.setManaged(true);
@@ -128,6 +136,10 @@ public class TaskController {
     private void handleLoadImageToDecode() {
         System.out.printf("handleLoadImageToDecode");
         FileChooser fileChooser = new FileChooser();
+        File resourcesDir = new File(System.getProperty("user.dir") + "/src/main/resources");
+        if (resourcesDir.exists()) {
+            fileChooser.setInitialDirectory(resourcesDir);
+        }
         fileChooser.setTitle("Pick image to decode");
         fileChooser.getExtensionFilters().addAll(
                 new ExtensionFilter("Image Files", "*.png"));
