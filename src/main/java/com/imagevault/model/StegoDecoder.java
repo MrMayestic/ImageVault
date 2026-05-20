@@ -12,15 +12,20 @@ public class StegoDecoder {
         return (currentByte << 1) | (bit & 1);
     }
 
-    public static String decode(String srcImagePath, String resultPath) {
+    public static String decode(String srcImagePath, String resultPath)  throws Exception  {
         BufferedImage img;
 
         try {
             File mainImg = new File(srcImagePath);
+            if (!mainImg.exists()) {
+                throw new Exception("Failed to read image: File not found.");
+            }
             img = ImageIO.read(mainImg);
+            if (img == null) {
+                throw new Exception("Failed to read image: Unsupported format.");
+            }
         } catch (IOException e) {
-            System.err.println("Nie udało się wczytać obrazu: " + e.getMessage());
-            return "";
+            throw new Exception("Failed to read image: " + e.getMessage());
         }
 
         int bitIndex = 0;
@@ -88,8 +93,6 @@ public class StegoDecoder {
             }
         }
 
-        // String tekst = new String(message, StandardCharsets.UTF_8);
-        // System.out.println(Base64.getEncoder().encodeToString(message));
         return Base64.getEncoder().encodeToString(message);
     }
 }

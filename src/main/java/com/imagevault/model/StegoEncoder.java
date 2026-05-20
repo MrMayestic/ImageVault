@@ -16,14 +16,16 @@ public class StegoEncoder {
         return (byteText[byteIndex] >> bitPos) & 1;
     }
 
-    public static File encode(File mainImg, String textToEncode, String resultPath) {
+    public static File encode(File mainImg, String textToEncode, String resultPath) throws Exception {
         BufferedImage img;
 
         try {
             img = ImageIO.read(mainImg);
+            if (img == null) {
+                throw new Exception("Failed to read image: Unsupported format.");
+            }
         } catch (IOException e) {
-            System.err.println("Failed to read image: " + e.getMessage());
-            return null;
+            throw new Exception("Failed to read image: File is corrupted or unsupported format.");
         }
 
         byte[] byteText = Base64.getDecoder().decode(textToEncode);
@@ -70,9 +72,8 @@ public class StegoEncoder {
 
         try {
             ImageIO.write(img, "png", encodedImage);
-            System.out.println("Saved encoded image.");
         } catch (IOException e) {
-            System.err.println("Failed to encode image: " + e.getMessage());
+            throw new Exception("Failed to encode image: " + e.getMessage());
         }
 
         return encodedImage;

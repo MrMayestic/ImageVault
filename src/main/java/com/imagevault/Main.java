@@ -19,7 +19,7 @@ public class Main extends Application {
         Rectangle2D screen = Screen.getPrimary().getVisualBounds();
 
         double width = screen.getWidth() * 0.5;
-        double height = screen.getHeight() * 0.6;
+        double height = screen.getHeight() * 0.7;
 
         Scene scene = new Scene(fxmlLoader.load(), width, height);
         stage.setTitle("ImageVault");

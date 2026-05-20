@@ -1,7 +1,7 @@
 package com.imagevault.controller;
 import com.imagevault.model.*;
+import com.imagevault.util.*;
 
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import javafx.fxml.*;
 import javafx.scene.control.*;
@@ -32,11 +32,12 @@ public class TaskController {
     @FXML private ImageView resultPreview;
     @FXML private Button downloadImage;
 
-//    private File imageToDecode;
-
     @FXML private Label decodeImagePath;
     @FXML private PasswordField decodedPasswordField;
     @FXML private TextArea outputArea;
+
+    @FXML private Label encodeErrorLabel;
+    @FXML private Label decodeErrorLabel;
 
     //handle to toggling text input method
     @FXML
@@ -56,7 +57,7 @@ public class TaskController {
     @FXML
     private void handleLoadImage() {
         FileChooser fileChooser = new FileChooser();
-        File resourcesDir = new File(System.getProperty("user.dir") + "/src/main/resources");
+        File resourcesDir = new File(System.getProperty("user.dir") + "/src/main/resources/UserFiles");
         if (resourcesDir.exists()) {
             fileChooser.setInitialDirectory(resourcesDir);
         }
@@ -74,7 +75,7 @@ public class TaskController {
     @FXML
     private void handleLoadText() {
         FileChooser fileChooser = new FileChooser();
-        File resourcesDir = new File(System.getProperty("user.dir") + "/src/main/resources");
+        File resourcesDir = new File(System.getProperty("user.dir") + "/src/main/resources/UserFiles");
         if (resourcesDir.exists()) {
             fileChooser.setInitialDirectory(resourcesDir);
         }
@@ -91,16 +92,31 @@ public class TaskController {
     //handler when encode button is clicked
     @FXML
     private void encodeImage() {
+        errorHandler.clear(encodeErrorLabel);
+
         String password = passwordField.getText();
         String textToEncode;
         String encryptedData;
 
+        if (selectedImage == null) {
+            errorHandler.error(encodeErrorLabel, "No image selected.");
+            return;
+        }
+
         //isFile tells which type of text input is selected
         if (isFile) {
+            if (selectedText == null) {
+                errorHandler.error(encodeErrorLabel, "No text file selected.");
+                return;
+            }
             try {
                 textToEncode = Files.readString(Path.of(selectedText.getAbsolutePath()));
+                if (textToEncode.isEmpty()) {
+                    errorHandler.error(encodeErrorLabel, "Text file is empty.");
+                    return;
+                }
             } catch (Exception e) {
-                e.printStackTrace();
+                errorHandler.error(encodeErrorLabel, "Failed to read text file: " + e.getMessage());
                 return;
             }
         } else {
@@ -111,12 +127,19 @@ public class TaskController {
         try {
             encryptedData = EncryptData.encrypt(textToEncode, EncryptData.generateKey(password));
         } catch (Exception e) {
-            e.printStackTrace();
-            return;
-        }
+        errorHandler.error(encodeErrorLabel, "Encryption failed: " + e.getMessage());
+        return;
+    }
+
+        File encodedImage = null;
 
         //encode() returns reference to new file
-        File encodedImage = StegoEncoder.encode(selectedImage, encryptedData, System.getProperty("user.dir") + "/src/main/resources/result");
+        try {
+            encodedImage = StegoEncoder.encode(selectedImage, encryptedData, System.getProperty("user.dir") + "/src/main/resources/UserFiles/result");
+        } catch (Exception e) {
+                errorHandler.error(encodeErrorLabel, e.getMessage());
+            return;
+        }
 
         resultImageInfo.setVisible(true);
         resultImageInfo.setManaged(true);
@@ -134,9 +157,8 @@ public class TaskController {
     //
     @FXML
     private void handleLoadImageToDecode() {
-        System.out.printf("handleLoadImageToDecode");
         FileChooser fileChooser = new FileChooser();
-        File resourcesDir = new File(System.getProperty("user.dir") + "/src/main/resources");
+        File resourcesDir = new File(System.getProperty("user.dir") + "/src/main/resources/UserFiles");
         if (resourcesDir.exists()) {
             fileChooser.setInitialDirectory(resourcesDir);
         }
@@ -155,8 +177,9 @@ public class TaskController {
     //decode handler
     @FXML
     private void decodeImage() {
+        errorHandler.clear(decodeErrorLabel);
         if (selectedImageToDecode == null) {
-            outputArea.setText("Error: No image selected!");
+            errorHandler.error(decodeErrorLabel, "No image selected.");
             return;
         }
 
@@ -168,62 +191,48 @@ public class TaskController {
             base64Data = StegoDecoder.decode(selectedImageToDecode.getAbsolutePath(), "");
             
             if (base64Data == null || base64Data.isEmpty()) {
-                outputArea.setText("Error: No hidden data found in this image.");
+                errorHandler.error(decodeErrorLabel, "No hidden data found in this image.");
                 return;
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            outputArea.setText("Error: Failed to extract data from image.");
+            errorHandler.error(decodeErrorLabel, e.getMessage());
             return;
         }
 
         try {
             decryptedText = EncryptData.decrypt(base64Data, EncryptData.generateKey(password));
         } catch (Exception e) {
-            e.printStackTrace();
-            outputArea.setText("Error: Decryption failed. Wrong password?");
+            errorHandler.error(decodeErrorLabel, e.getMessage());
             return;
         }
-
+        System.out.println(decryptedText);
         outputArea.setText(decryptedText);
+    }
+
+    @FXML
+    private void handleSaveResult() {
+        if (resultPreview.getImage() == null) return;
+
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Save image");
+        fc.setInitialFileName("result.png");
+        fc.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("PNG", "*.png")
+        );
+        File dest = fc.showSaveDialog(new Stage());
+        if (dest != null) {
+            try {
+                String url = resultPreview.getImage().getUrl();
+                File source = new File(new java.net.URI(url));
+                Files.copy(source.toPath(), dest.toPath(),
+                        StandardCopyOption.REPLACE_EXISTING);
+            } catch (Exception e) {
+                errorHandler.error(encodeErrorLabel, e.getMessage());
+            }
+        }
     }
 
     //temporary decoding test
     public static void main(String[] args) {
-//        String testImgSrc = "test.jpg";
-//        String testTextSrc = "textToEncode.txt";
-//        String EnceyptedTextSrc = "encrypted.txt";
-//        String testResultPath = "result";
-//        String testImageToDecodePath = "result.png";
-//        String testDecodedTextPath = "decoded.txt";
-//        String testPassword = "parserZcepa";
-//        String encryptedData;
-//
-//        String textToEncode;
-//
-//        try {
-//            textToEncode = Files.readString(Path.of(testTextSrc));
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return;
-//        }
-//
-//        try {
-//            encryptedData = EncryptData.encrypt(textToEncode, EncryptData.generateKey(testPassword));
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return;
-//        }
-
-//        StegoEncoder.encode(testImgSrc, encryptedData, testResultPath);
-        String decodedText = StegoDecoder.decode("result.png", "");
-
-        try {
-            System.out.println(EncryptData.decrypt(decodedText, EncryptData.generateKey("iLoveIO!")));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return;
-        }
-
     }
 }

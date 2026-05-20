@@ -30,38 +30,20 @@ public class EncryptData {
         return new SecretKeySpec(keyBytes, "AES");
     }
 
-    public static String encrypt(String data, SecretKey key) {
+    public static String encrypt(String data, SecretKey key) throws Exception {
 
         byte[] initVector = new byte[GCM_IV_LENGTH];
         new SecureRandom().nextBytes(initVector);
 
         GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH, initVector);
         Cipher cipher;
+        byte[] cipherText;
         try {
             cipher = Cipher.getInstance("AES/GCM/NoPadding");
             cipher.init(Cipher.ENCRYPT_MODE, key, spec);
-        } catch (NoSuchAlgorithmException e) {
-            System.err.println("Nie udalo sie zakodowac wiadomosci: " + e.getMessage());
-            return new String("");
-        } catch (NoSuchPaddingException e) {
-            System.err.println("Nie udalo sie zakodowac wiadomosci: " + e.getMessage());
-            return new String("");
-        } catch (InvalidKeyException e) {
-            System.err.println("Nie udalo sie zakodowac wiadomosci: " + e.getMessage());
-            return new String("");
-        } catch (InvalidAlgorithmParameterException e) {
-            System.err.println("Nie udalo sie zakodowac wiadomosci: " + e.getMessage());
-            return new String("");
-        }
-        byte[] cipherText;
-        try {
             cipherText = cipher.doFinal(data.getBytes());
-        } catch (IllegalBlockSizeException e) {
-            System.err.println("Nie udalo sie zakodowac wiadomosci: " + e.getMessage());
-            return new String("");
-        } catch (BadPaddingException e) {
-            System.err.println("Nie udalo sie zakodowac wiadomosci: " + e.getMessage());
-            return new String("");
+        } catch (Exception e) {
+            throw new Exception("Failed to encrypt text: " + e.getMessage());
         }
 
         byte[] dataPrepared = new byte[initVector.length + cipherText.length];
@@ -71,7 +53,7 @@ public class EncryptData {
         return Base64.getEncoder().encodeToString(dataPrepared);
     }
 
-    public static String decrypt(String data, SecretKey key) {
+    public static String decrypt(String data, SecretKey key) throws Exception {
         byte[] dataDecoded = Base64.getDecoder().decode(data);
 
         byte[] initVector = new byte[GCM_IV_LENGTH];
@@ -84,34 +66,17 @@ public class EncryptData {
         Cipher cipher;
         try {
             cipher = Cipher.getInstance("AES/GCM/NoPadding");
-        } catch (NoSuchAlgorithmException e) {
-            System.err.println("Nie udalo sie zakodowac wiadomosci: " + e.getMessage());
-            return new String("");
-        } catch (NoSuchPaddingException e) {
-            System.err.println("Nie udalo sie zakodowac wiadomosci: " + e.getMessage());
-            return new String("");
-        }
-        GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH, initVector);
-        try {
-            cipher.init(Cipher.DECRYPT_MODE, key, spec);
-        } catch (InvalidKeyException e) {
-            System.err.println("Nie udalo sie zakodowac wiadomosci: " + e.getMessage());
-            return new String("");
-        } catch (InvalidAlgorithmParameterException e) {
-            System.err.println("Nie udalo sie zakodowac wiadomosci: " + e.getMessage());
-            return new String("");
+            cipher.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(GCM_TAG_LENGTH, initVector));
+        } catch (Exception e) {
+            throw new Exception("Failed to decrypt text: " + e.getMessage());
         }
 
         byte[] plainText;
 
         try {
             plainText = cipher.doFinal(cipherText);
-        } catch (IllegalBlockSizeException e) {
-            System.err.println("Nie udalo sie zakodowac wiadomosci: " + e.getMessage());
-            return new String("");
-        } catch (BadPaddingException e) {
-            System.err.println("Nie udalo sie zakodowac wiadomosci: " + e.getMessage());
-            return new String("");
+        } catch (Exception e) {
+            throw new Exception("Failed to decrypt text: " + e.getMessage());
         }
 
         return new String(plainText);
