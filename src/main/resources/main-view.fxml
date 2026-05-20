@@ -43,13 +43,17 @@
                      <String fx:value="success" />
                      <String fx:value="large" />
                   </styleClass></Button>
+               <HBox prefHeight="22.0" prefWidth="478.0">
+                  <children>
+                     <Label fx:id="encodeErrorLabel" styleClass="danger" />
+                  </children></HBox>
 
                     <HBox alignment="CENTER_LEFT" spacing="10">
                         <Label fx:id="resultImageInfo" text="Result Image:" />
                     </HBox>
 
                     <ImageView fx:id="resultPreview" fitHeight="200" fitWidth="300" preserveRatio="true" />
-                     <Button fx:id="downloadImage" managed="false" styleClass="rounded" text="Download" visible="false" />
+                     <Button fx:id="downloadImage" onAction="#handleSaveResult" managed="false" styleClass="rounded" text="Download" visible="false" />
 
                 </VBox>
             </content>
@@ -74,6 +78,11 @@
                             <String fx:value="accent" />
                         </styleClass>
                     </Button>
+
+                    <HBox prefHeight="22.0" prefWidth="478.0">
+                        <children>
+                            <Label fx:id="decodeErrorLabel" styleClass="danger" />
+                        </children></HBox>
 
                     <Label text="Decoded message:" />
                     <TextArea fx:id="outputArea" editable="false" minHeight="-Infinity" minWidth="-Infinity" prefHeight="163.0" prefWidth="319.0" promptText="Wynik pojawi się tutaj..." VBox.vgrow="ALWAYS" />
