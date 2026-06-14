@@ -205,7 +205,7 @@ public class TaskController {
             errorHandler.error(decodeErrorLabel, e.getMessage());
             return;
         }
-        System.out.println(decryptedText);
+
         outputArea.setText(decryptedText);
     }
 
