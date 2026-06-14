@@ -83,17 +83,6 @@ public class EncryptData {
     }
 
     public static void main(String[] args) throws Exception {
-        String text = "Woda, szlugi, grube baby";
-
-        KeyGenerator keyGen = KeyGenerator.getInstance("AES");
-        keyGen.init(AES_KEY_SIZE);
-        SecretKey key = keyGen.generateKey();
-
-        String encrypted = encrypt(text, key);
-        System.out.println("Encrypted (Base64): " + encrypted);
-
-        String decrypted = decrypt(encrypted, key);
-        System.out.println("Decrypted: " + decrypted);
     }
 
 }
